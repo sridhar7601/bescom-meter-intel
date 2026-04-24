@@ -1,0 +1,35 @@
+---
+title: Theme 8 — MeterSense AI Architecture
+---
+flowchart TB
+    subgraph Ingest["METER DATA INGESTION"]
+      SCADA["Smart Meter Feed<br/>(MDAS / HES)"]
+      CSV["Bulk CSV Upload<br/>(ops fallback)"]
+    end
+    subgraph Store["TIME-SERIES STORE"]
+      FEEDER["FeederReading"]
+      CONSUMER["ConsumerReading"]
+    end
+    subgraph Detect["DETECTION PIPELINE"]
+      IF["Isolation Forest<br/>(per-feeder baselines)"]
+      RULES["Rule-Based Detectors<br/>• zero-consumption-live<br/>• reverse-flow<br/>• PF drop · voltage sag<br/>• comm loss · bypass"]
+      RECON["Feeder Reconciliation<br/>(supplied − billed = loss)"]
+    end
+    subgraph Output["OPERATIONAL OUTPUT"]
+      ANOM["Anomaly Ledger<br/>(severity + evidence + ₹ loss)"]
+      DASH["Dashboard<br/>(Tremor metrics + charts)"]
+      MAP["Geographic Heatmap<br/>(Leaflet choropleth)"]
+      WORKFLOW["Investigator Workflow<br/>(ack → resolve)"]
+    end
+    SCADA & CSV --> FEEDER & CONSUMER
+    FEEDER & CONSUMER --> IF & RULES & RECON
+    IF & RULES & RECON --> ANOM
+    ANOM --> DASH & MAP & WORKFLOW
+    classDef ingest fill:#fef3c7,stroke:#b45309,color:#78350f
+    classDef store fill:#eab308,stroke:#a16207,color:#fff
+    classDef detect fill:#f59e0b,stroke:#b45309,color:#fff
+    classDef output fill:#fffbeb,stroke:#b45309,color:#78350f
+    class SCADA,CSV ingest
+    class FEEDER,CONSUMER store
+    class IF,RULES,RECON detect
+    class ANOM,DASH,MAP,WORKFLOW output

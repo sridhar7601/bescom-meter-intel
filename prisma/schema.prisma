@@ -1,0 +1,105 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Substation {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  division  String
+  lat       Float
+  lng       Float
+  feeders   Feeder[]
+}
+
+model Feeder {
+  id             String   @id @default(cuid())
+  substationId  String
+  code          String   @unique
+  name          String
+  type          String
+  capacityKW    Float
+  substation    Substation  @relation(fields: [substationId], references: [id], onDelete: Cascade)
+  consumers     Consumer[]
+  readings      FeederReading[]
+  anomalies     Anomaly[]
+
+  @@index([substationId])
+}
+
+model Consumer {
+  id              String   @id @default(cuid())
+  feederId        String
+  rrNumber        String   @unique
+  name            String
+  type            String
+  sanctionedLoad  Float
+  pincode         String
+  lat             Float?
+  lng             Float?
+  feeder          Feeder   @relation(fields: [feederId], references: [id], onDelete: Cascade)
+  readings        ConsumerReading[]
+  anomalies       Anomaly[]
+
+  @@index([feederId])
+  @@index([pincode])
+}
+
+model FeederReading {
+  id            String   @id @default(cuid())
+  feederId     String
+  timestamp     DateTime
+  kwhSupplied  Float
+  kwhBilled    Float
+  lossKwh      Float
+  lossPct      Float
+  feeder        Feeder   @relation(fields: [feederId], references: [id], onDelete: Cascade)
+
+  @@index([feederId, timestamp])
+}
+
+model ConsumerReading {
+  id              String   @id @default(cuid())
+  consumerId      String
+  timestamp       DateTime
+  kwh             Float
+  voltage         Float?
+  current         Float?
+  powerFactor     Float?
+  reverseFlow     Boolean  @default(false)
+  commStatus      String?
+  consumer        Consumer @relation(fields: [consumerId], references: [id], onDelete: Cascade)
+
+  @@index([consumerId, timestamp])
+}
+
+model Anomaly {
+  id                      String   @id @default(cuid())
+  consumerId              String?
+  feederId                String?
+  type                    String
+  severity                String
+  status                  String   @default("OPEN")
+  detectedAt              DateTime @default(now())
+  windowStart             DateTime
+  windowEnd               DateTime
+  score                   Float
+  evidence                String
+  reasoning               String
+  estimatedLossKwh        Float?
+  estimatedRevenueLossInr Float?
+  investigator            String?
+  resolution              String?
+  statusHistory           String?
+  consumer                Consumer? @relation(fields: [consumerId], references: [id], onDelete: SetNull)
+  feeder                  Feeder?   @relation(fields: [feederId], references: [id], onDelete: SetNull)
+
+  @@index([status, severity])
+  @@index([feederId])
+  @@index([type])
+}

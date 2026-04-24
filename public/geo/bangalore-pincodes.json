@@ -1,0 +1,101 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "pincode": "560041" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.57, 12.9],
+            [77.62, 12.9],
+            [77.62, 12.95],
+            [77.57, 12.95],
+            [77.57, 12.9]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "pincode": "560034" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.61, 12.91],
+            [77.66, 12.91],
+            [77.66, 12.95],
+            [77.61, 12.95],
+            [77.61, 12.91]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "pincode": "560038" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.58, 12.95],
+            [77.64, 12.95],
+            [77.64, 12.99],
+            [77.58, 12.99],
+            [77.58, 12.95]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "pincode": "560066" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.72, 12.95],
+            [77.78, 12.95],
+            [77.78, 13.0],
+            [77.72, 13.0],
+            [77.72, 12.95]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "pincode": "560010" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+            [
+            [77.52, 12.99],
+            [77.58, 12.99],
+            [77.58, 13.04],
+            [77.52, 13.04],
+            [77.52, 12.99]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "pincode": "560100" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.64, 12.81],
+            [77.7, 12.81],
+            [77.7, 12.88],
+            [77.64, 12.88],
+            [77.64, 12.81]
+          ]
+        ]
+      }
+    }
+  ]
+}
