@@ -4,6 +4,13 @@ Operational dashboard for BESCOM engineers: feeder and consumer time-series, **A
 
 > **PanIIT AI for Bharat Hackathon** — Theme 8: AI for Smart Meter Intelligence & Loss Detection (BESCOM)
 
+
+## 🎥 Demo Video
+
+[![MeterSense AI — 5-min walkthrough](demo/video/poster.jpg)](demo/video/demo.mp4)
+
+> Voiceover by ElevenLabs (Bella, female). Pipeline reproducible — see `demo/video/`.
+
 ## Quick start
 
 ```bash
