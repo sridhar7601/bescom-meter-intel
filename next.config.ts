@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Disable React Strict Mode to avoid Leaflet "Map container is already
+  // initialized" error caused by intentional double-mount in dev.
+  reactStrictMode: false,
 };
 
 export default nextConfig;
