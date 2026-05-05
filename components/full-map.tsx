@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { GeoJSON, MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 const yellowIcon = L.divIcon({
   html: '<div style="width:18px;height:18px;border-radius:9999px;background:#facc15;border:2px solid #a16207"></div>',
@@ -27,6 +27,9 @@ export function FullMap({
   geojson: object | null;
 }) {
   const center: [number, number] = [12.97, 77.59];
+  const [mounted, setMounted] = useState(false);
+  const mapId = useId();
+  useEffect(() => { setMounted(true); }, []);
   const style = useMemo(
     () => (feature: GeoJSON.Feature | undefined) => {
       const pc = (feature?.properties as { pincode?: string } | undefined)?.pincode;
@@ -41,9 +44,12 @@ export function FullMap({
     },
     [heat]
   );
+  if (!mounted) {
+    return <div className="fixed inset-0 top-[88px] z-0 md:top-[88px] bg-stone-100" />;
+  }
   return (
     <div className="fixed inset-0 top-[88px] z-0 md:top-[88px]">
-      <MapContainer center={center} zoom={11.2} className="h-full w-full" scrollWheelZoom>
+      <MapContainer key={mapId} center={center} zoom={11.2} className="h-full w-full" scrollWheelZoom>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

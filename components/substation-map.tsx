@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
+import { useEffect, useId, useState } from "react";
 
 const yellowIcon = L.divIcon({
   className: "custom-leaflet",
@@ -22,9 +23,20 @@ export type SubMapItem = {
 
 export function SubstationMap({ items, className }: { items: SubMapItem[]; className?: string }) {
   const center: [number, number] = [12.97, 77.59];
+  // React Strict Mode + Leaflet double-mount workaround: only render after first effect runs.
+  const [mounted, setMounted] = useState(false);
+  const mapId = useId();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) {
+    return (
+      <div className={className ?? "h-[360px] overflow-hidden rounded-lg border border-amber-200 bg-stone-50"} />
+    );
+  }
   return (
     <div className={className ?? "h-[360px] overflow-hidden rounded-lg border border-amber-200"}>
-      <MapContainer center={center} zoom={11.5} className="h-full w-full" scrollWheelZoom>
+      <MapContainer key={mapId} center={center} zoom={11.5} className="h-full w-full" scrollWheelZoom>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
