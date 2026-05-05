@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { db } from "@/lib/db";
 import { AnomalyActions } from "@/components/anomaly-actions";
+import { explainAnomaly } from "@/lib/llm-narration";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -12,6 +14,18 @@ export default async function AnomalyDetailPage({ params }: Params) {
     include: { consumer: true, feeder: { include: { substation: true } } },
   });
   if (!a) notFound();
+  let evidence: Record<string, unknown> = {};
+  try { evidence = JSON.parse(a.evidence ?? "{}"); } catch { evidence = {}; }
+  const aiAdvice = await explainAnomaly({
+    anomalyId: a.id,
+    type: a.type,
+    severity: a.severity,
+    consumerName: a.consumer?.name ?? null,
+    feederName: a.feeder?.name ?? null,
+    evidence,
+    estimatedLossKwh: a.estimatedLossKwh ?? null,
+    estimatedRevenueLossInr: a.estimatedRevenueLossInr ?? null,
+  });
   let history: { at: string; from: string; to: string; actor: string }[] = [];
   try {
     history = JSON.parse(a.statusHistory ?? "[]");
@@ -40,8 +54,17 @@ export default async function AnomalyDetailPage({ params }: Params) {
           </Link>
         ) : null}
       </div>
+      <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-4 text-sm">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles size={14} className="text-indigo-600" />
+          <h2 className="font-semibold text-indigo-700">AI Inspector Recommendation</h2>
+          <span className="text-[10px] uppercase tracking-wider rounded-full bg-indigo-600 text-white px-2 py-0.5 font-bold">Azure GPT-4.1</span>
+        </div>
+        <p className="text-stone-800">{aiAdvice}</p>
+      </div>
+
       <div className="rounded-lg border border-amber-100 bg-white p-4 text-sm text-stone-800">
-        <h2 className="font-semibold text-amber-900">Reasoning</h2>
+        <h2 className="font-semibold text-amber-900">Reasoning (rule output)</h2>
         <p className="mt-1">{a.reasoning}</p>
         <h2 className="mt-4 font-semibold text-amber-900">Evidence</h2>
         <pre className="mt-1 max-h-64 overflow-auto rounded bg-amber-50/50 p-2 text-xs">{a.evidence}</pre>

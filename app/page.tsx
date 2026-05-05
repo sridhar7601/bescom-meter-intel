@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { AreaChart, Card, DonutChart, Metric, Text, Title } from "@tremor/react";
+import { Sparkles } from "lucide-react";
 import { db } from "@/lib/db";
 import { SubstationMapDynamic } from "@/components/substation-map-dynamic";
 import type { SubMapItem } from "@/components/substation-map";
+import { forecastFeeder, aggregateFleet } from "@/lib/demand-forecast";
+import { compareBaselines } from "@/lib/baselines";
+import { generateDashboardBriefing } from "@/lib/llm-narration";
 
 async function load() {
   const subs = await db.substation.findMany({
@@ -48,6 +52,44 @@ async function load() {
     take: 8,
     include: { feeder: true, consumer: true },
   });
+  // Part A rollup for AI briefing
+  const allFeeders = await db.feeder.findMany({
+    include: { readings: { orderBy: { timestamp: "asc" } } },
+  });
+  const perFeederForecasts = allFeeders.map((f) => {
+    const history = f.readings.map((r) => ({
+      timestamp: new Date(r.timestamp),
+      kwhSupplied: r.kwhSupplied,
+      kwhBilled: r.kwhBilled,
+    }));
+    const fc = forecastFeeder(f.id, history, f.capacityKW);
+    const bl = compareBaselines(f.id, history, f.capacityKW);
+    return { fc, bl };
+  });
+  const fleetCurve = aggregateFleet(perFeederForecasts.map((x) => x.fc));
+  const fleetPeak = fleetCurve.length > 0
+    ? fleetCurve.reduce((max, p) => (p.forecastKwh > max.forecastKwh ? p : max), fleetCurve[0])
+    : null;
+  const highRiskFeeders = perFeederForecasts.filter((x) => x.fc.riskLevel === "HIGH").length;
+  const avgMape = perFeederForecasts.length
+    ? perFeederForecasts.reduce((s, x) => s + x.bl.modelMape, 0) / perFeederForecasts.length : 0;
+  const totalConsumers = await db.consumer.count();
+  const totalSubstations = await db.substation.count();
+
+  const briefing = await generateDashboardBriefing({
+    totalSubstations,
+    totalFeeders: allFeeders.length,
+    totalConsumers,
+    openAnomalies: openA.length,
+    criticalAnomalies: crit,
+    avgNetworkLossPct: avgLossAll,
+    estimatedRevenueLossInr: rev,
+    highRiskFeeders,
+    fleetPeakKwh: fleetPeak?.forecastKwh ?? 0,
+    fleetPeakHour: fleetPeak ? fleetPeak.timestamp.getHours() : 0,
+    forecastModelMape: avgMape,
+  });
+
   return {
     mapItems,
     suppliedVsBilled,
@@ -59,6 +101,10 @@ async function load() {
     openCount: openA.length,
     feeders: await db.feeder.count(),
     recent,
+    briefing,
+    highRiskFeeders,
+    fleetPeakKwh: fleetPeak?.forecastKwh ?? 0,
+    fleetPeakHour: fleetPeak ? fleetPeak.timestamp.getHours() : 0,
   };
 }
 
@@ -66,6 +112,15 @@ export default async function HomePage() {
   const d = await load();
   return (
     <div className="space-y-6">
+      <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-white border-l-4 border-indigo-500 border-y border-r border-indigo-100 p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Sparkles size={16} className="text-indigo-600" />
+          <h2 className="text-sm font-semibold text-indigo-700">AI Morning Briefing</h2>
+          <span className="text-[10px] uppercase tracking-wider rounded-full bg-indigo-600 text-white px-2 py-0.5 font-bold">Azure GPT-4.1</span>
+        </div>
+        <p className="text-sm leading-relaxed text-stone-700 whitespace-pre-line">{d.briefing}</p>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card decoration="top" decorationColor="amber">
           <Text>Active feeders</Text>
