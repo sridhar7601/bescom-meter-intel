@@ -8,9 +8,13 @@ export default async function AnomaliesPage() {
     include: { consumer: true, feeder: true },
   });
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold text-amber-900">Anomaly ledger</h1>
-      <p className="text-stone-600">Filter, expand evidence, and open drill-downs.</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-stone-900">Anomaly ledger</h1>
+        <p className="text-stone-600 text-sm mt-1">
+          {list.length} detected anomalies · isolation-forest + rule-based detectors · click any row to inspect the evidence trail.
+        </p>
+      </div>
       <AnomalyTable
         initial={list.map((a) => ({
           id: a.id,

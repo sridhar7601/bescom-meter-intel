@@ -28,3 +28,9 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# LLM disk cache + local sqlite (regenerated on demand)
+/data/
+*.db
+*.db-journal
+
